@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ontology" basedir="." default="dist">
+  
+	<!-- CONSTANTS -->
+	<property name="PROJECT" value="ontology"/>
+	<property name="CORE" value="core"/>
+	<property name="VERSION" value="0.1"/>
+	<property name="DEV" value="dev"/>
+	
+	<!-- DIRECTORIES -->
+	<property name="lib.dir" value="WebContent/WEB-INF/lib"/>  
+	<property name="dist.dir" value="dist"/>
+	<property name="build.dir" value="build"/>
+	<property name="src.dir" value="src/au/edu/anu/cecs/explorer"/>
+	<property name="webapp.dir" value="webapp"/>
+	<property name="webapps.libs" value="${webapp.dir}/libs" />
+	<property environment="env"/>
+	<property name="tomcat.manager" value="http://www.webscienceaustralia.org" />
+	<property name="tomcat.username" value="" />
+	<property name="tomcat.password" value="" />
+  
+  	<path id="classpath">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar"/>
+			<exclude name="${junit.jar}"/>
+		</fileset>
+		<pathelement path="${java.class.path}"/>
+	</path>
+  	
+	<target name="clean">
+		<tstamp />
+		<echo>Cleaning up</echo>
+		  		
+		<delete dir="${dist.dir}"/>
+		<delete dir="${webapp.dir}"/>
+		<delete dir="${build.dir}"/>
+	</target>
+	
+  	<target name="prepare">
+  		<echo>Preparing directories</echo>
+  		<mkdir dir="${build.dir}"/>
+  		<mkdir dir="${dist.dir}"/>
+  		<mkdir dir="${webapps.libs}"/>
+  	</target>
+	  
+	<target name="copy">
+
+  	</target>  
+			
+	<target name="dist" depends="prepare,copy">
+    	<javac destdir="${build.dir}"
+	   		srcdir="${src.dir}"
+	   		debug="yes">
+	      <classpath refid="classpath"/>
+    	</javac>
+		
+		<copy todir="${build.dir}">
+					<fileset dir="${src.dir}">
+						<include name="**/*.properties"/>
+					</fileset>
+		</copy>
+		
+		<jar jarfile="${dist.dir}/${PROJECT}-${DEV}.jar" basedir="${build.dir}">
+		<!--	<manifest>
+				<attribute name="Main-Class" value="ie.deri.urq.lodq.cli.Main"/>
+      		</manifest>-->
+    	</jar>
+  	</target>
+  	
+  	<target name="war" depends="prepare,copy">
+    	<javac destdir="${build.dir}"
+	   		srcdir="${src.dir}"
+	   		debug="yes">
+	      <classpath refid="classpath"/>
+    	</javac>
+  		<war destfile="${dist.dir}/${PROJECT}.war" 
+     		webxml="WebContent/WEB-INF/web.xml">
+                <webinf dir="${webapp.dir}/"  />
+                  <fileset dir="WebContent/WEB-INF/"/>
+                  <classes dir="${build.dir}"/>
+                  <lib dir="${lib.dir}" />
+                </war>
+	</target>
+	
+	<!-- Abort the build if TOMCAT_HOME is not set -->
+	<target name="checkTomcatHome" unless="env.TOMCAT_HOME">
+	   <fail message="TOMCAT_HOME must be set!"/>
+	</target>
+
+	<!-- Deploy the WAR file to TOMCAT_HOME\webapps --> 
+	<target name="deploy" depends="checkTomcatHome,war">
+		<echo>Deploying to ${env.TOMCAT_HOME}</echo>
+	    <copy file="${dist.dir}/${PROJECT}.war" todir="${env.TOMCAT_HOME}/webapps"/>
+	</target>
+
+</project>
